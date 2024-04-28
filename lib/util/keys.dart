@@ -1,0 +1,4 @@
+enum Keys {
+  userId,
+  roomId,
+}
