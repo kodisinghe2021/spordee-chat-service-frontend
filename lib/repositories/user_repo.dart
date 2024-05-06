@@ -4,8 +4,7 @@ import 'package:spordee_messaging_app/model/auth_user_model.dart';
 import 'package:spordee_messaging_app/util/dio_initilizer.dart';
 import 'package:spordee_messaging_app/util/dotenv.dart';
 
-class UserRepo{
-  
+class UserRepo {
   final DioInit _dioInit = DioInit();
 
   Future<void> getUser(String userID) async {
@@ -49,7 +48,7 @@ class UserRepo{
       return null;
     }
   }
-  
+
   Future<AuthUserModel?> registerUser({
     required String userId,
     required String name,
@@ -84,16 +83,17 @@ class UserRepo{
       return null;
     }
   }
-  
-  Future<AuthUserModel?>login({required String mobile})async{
-     try {
-   Response response =await _dioInit.dioInit.post(LOGIN+"/"+mobile);
-         Logger().d("Response status code: ${response.statusCode}");
+
+  Future<AuthUserModel?> login({required String mobile}) async {
+    try {
+      final response = await _dioInit.dioInit.post(LOGIN + "/" + mobile);
+      //  print(${response.})
+      Logger().d("Response status code: ${response.statusCode}");
       Logger().d("Response body: ${response.data}");
 
-            // converted to map
-      AuthUserModel newModel = AuthUserModel.fromMap(response.data);
-      return newModel;
+      // converted to map
+      // AuthUserModel newModel = AuthUserModel.fromMap(response.data);
+      return null;
     } on DioException catch (e) {
       Logger().e("Dio error: ${e.error}");
       return null;
