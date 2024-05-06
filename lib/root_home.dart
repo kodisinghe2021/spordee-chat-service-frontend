@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 import 'package:spordee_messaging_app/controllers/authentication/authentication_provider.dart';
 import 'package:spordee_messaging_app/controllers/chat/room_provider.dart';
+import 'package:spordee_messaging_app/controllers/messages/message_provider.dart';
+import 'package:spordee_messaging_app/controllers/messages/room_page_meesage_list.dart';
+import 'package:spordee_messaging_app/controllers/route_controller.dart';
+import 'package:spordee_messaging_app/screens/chat_room.dart';
 import 'package:spordee_messaging_app/screens/home_screen.dart';
 import 'package:spordee_messaging_app/screens/login_screen.dart';
 import 'package:spordee_messaging_app/screens/splash_screen.dart';
@@ -21,6 +26,15 @@ class RootHome extends StatelessWidget {
           ChangeNotifierProvider<RoomProvider>(
             create: (context) => RoomProvider(),
           ),
+          ChangeNotifierProvider<MessageProvider>(
+            create: (context) => MessageProvider(),
+          ),
+          ChangeNotifierProvider<RoomPageMessageList>(
+            create: (context) => RoomPageMessageList(),
+          ),
+          ChangeNotifierProvider<RouteProvider>(
+            create: (context) => RouteProvider(),
+          ),
         ],
         child: Consumer<AuthenticationProvider>(
           builder: (context, value, child) {
@@ -28,9 +42,20 @@ class RootHome extends StatelessWidget {
               return LoginScreen();
             }
             if (value.getAuthStatus == AuthState.success) {
-              return HomeScreen();
+              return Consumer<RouteProvider>(
+                builder: (context, value, child) {
+                  Logger().d("new Route :: ${value.currentRoute}");
+                  if (value.currentRoute == Routes.toChatScreen) {
+                    return const ChatRoomScreen();
+                  }
+                  if (value.currentRoute == Routes.tohomeScreen) {
+                    return HomeScreen();
+                  }
+                  return HomeScreen();
+                },
+              );
             } else {
-              return SplashScreen();
+              return const SplashScreen();
             }
           },
         ),

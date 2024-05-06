@@ -4,6 +4,8 @@ import 'package:provider/provider.dart';
 import 'package:spordee_messaging_app/config/creat_room_listner.dart';
 import 'package:spordee_messaging_app/controllers/authentication/authentication_provider.dart';
 import 'package:spordee_messaging_app/controllers/chat/room_provider.dart';
+import 'package:spordee_messaging_app/controllers/messages/message_provider.dart';
+import 'package:spordee_messaging_app/controllers/route_controller.dart';
 import 'package:spordee_messaging_app/screens/chat_room.dart';
 import 'package:spordee_messaging_app/service/local_store.dart';
 import 'package:spordee_messaging_app/util/constant.dart';
@@ -11,8 +13,9 @@ import 'package:spordee_messaging_app/util/keys.dart';
 import 'package:spordee_messaging_app/widgets/bottom_sheet_card.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({Key? key}) : super(key: key);
-
+  HomeScreen({
+    Key? key,
+  }) : super(key: key);
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
@@ -60,19 +63,30 @@ class _HomeScreenState extends State<HomeScreen> {
                                     // save roomId to local
                                     String roomId =
                                         value.getChatRooms[index].chatRoomId;
-                                    bool isSuucess = await LocalStore()
-                                        .addToLocal(Keys.roomId, roomId);
-                                    if (roomId.isNotEmpty && isSuucess) {
-                                      Provider.of<RoomProvider>(context, listen: false).getUsersList(roomId: roomId);
+                                    bool isLocalStoreSuucess =
+                                        await LocalStore()
+                                            .addToLocal(Keys.roomId, roomId);
+
+                                    if (roomId.isNotEmpty &&
+                                        isLocalStoreSuucess) {
+                                      await Provider.of<RoomProvider>(
+                                        context,
+                                        listen: false,
+                                      ).getUsersList(
+                                        roomId: roomId,
+                                      );
+
                                       bool isSuccess = await activeChatRoom();
+                                      await Provider.of<MessageProvider>(
+                                        context,
+                                        listen: false,
+                                      ).getMessagesWithPage();
+
                                       if (isSuccess) {
-                                        Navigator.push(
+                                        Provider.of<RouteProvider>(
                                           context,
-                                          MaterialPageRoute(
-                                            builder: (context) =>
-                                              const  ChatRoomScreen(),
-                                          ),
-                                        );
+                                          listen: false,
+                                        ).navigatTo(Routes.toChatScreen);
                                       }
                                     }
                                   },
@@ -123,9 +137,14 @@ class _HomeScreenState extends State<HomeScreen> {
                     height: h(context) * .06,
                     width: w(context) * .4,
                     child: ElevatedButton(
-                      onPressed: () {
-                        Provider.of<RoomProvider>(context, listen: false)
-                            .getAllRooms();
+                      onPressed: () async {
+                        bool isCaught = await Provider.of<RoomProvider>(
+                          context,
+                          listen: false,
+                        ).getAllRooms();
+                        if (!isCaught) {
+                          showWarningToast("No Rooms");
+                        }
                       },
                       child: const Text("Get Room List"),
                     ),

@@ -8,6 +8,10 @@ import 'package:spordee_messaging_app/util/keys.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 
 class RoomProvider extends ChangeNotifier {
+  RoomProvider._internal();
+  static final RoomProvider _instance = RoomProvider._internal();
+  factory RoomProvider() => _instance;
+
   final ChatRoomRepo _chatRoomRepo = ChatRoomRepo();
   final LocalStore _localStore = LocalStore();
   final DeviceInfoPlugin _deviceInfo = DeviceInfoPlugin();
@@ -49,7 +53,7 @@ class RoomProvider extends ChangeNotifier {
 
   List<ChatRoomModel> get getChatRooms => [..._chatRooms];
 
-  Future<void> createChatRoom({
+  Future<bool> createChatRoom({
     required String name,
   }) async {
     final baseDeviceInfo = await _deviceInfo.deviceInfo;
@@ -62,7 +66,7 @@ class RoomProvider extends ChangeNotifier {
 
     if (userId == null || deviceID == null) {
       log.w("User NULL");
-      return;
+      return false;
     }
     log.d("android id : $deviceID");
     ChatRoomModel? model = await _chatRoomRepo.createChatRoom(
@@ -72,46 +76,61 @@ class RoomProvider extends ChangeNotifier {
       createdBy: userId,
       deviceId: deviceID,
     );
-
     if (model != null) {
       _addChatRoom(model);
+      return true;
     } else {
       log.w("No model added at this time");
+      return false;
     }
   }
 
-  Future<void> getAllRooms() async {
+  Future<bool> getAllRooms() async {
     String? userId = await _localStore.getFromLocal(Keys.userId);
     log.d("USER ID :: ${userId.toString()}");
 
     if (userId == null) {
       log.w("User NULL");
-      return;
+      return false;
     }
     List<ChatRoomModel> models = await _chatRoomRepo.getAllRooms(userId);
     log.i("NEW MODELS RECEIVED :: ${models.length}");
     _replaceRooms(models);
+    if (models.isEmpty) {
+      return false;
+    } else {
+      return true;
+    }
   }
 
-  Future<void> findMemberByMobile(String mobile) async {
+  Future<bool> findMemberByMobile(String mobile) async {
     AuthUserModel? model = await _chatRoomRepo.findByMobile(mobile);
     if (model == null) {
-      return;
+      return false;
     }
     _addUSearchResult(model);
+    return true;
   }
 
-  Future<void> addUser({
+  Future<bool> addUser({
     required String room,
     required String memberId,
   }) async {
     log.i("Chat RoomId : $room");
     log.i("Member : $memberId");
 
-    await _chatRoomRepo.addUser(
+    ChatRoomModel? chatRoomModel = await _chatRoomRepo.addUser(
       room: room,
       memberId: memberId,
     );
+
+    if (chatRoomModel == null) {
+      Logger().d(" IN REPO MODEL NULL::");
+      return false;
+    } else {
+      Logger().d(" IN REPO :: ${chatRoomModel.chatRoomId}");
+      return true;
+    }
   }
 
   Future<void> getUsersList({
@@ -122,9 +141,10 @@ class RoomProvider extends ChangeNotifier {
     }
 
     log.i("Chat RoomId : $roomId");
-    List<String> users = await _chatRoomRepo.getUsersList(roomId);
+    List<String> users = await _chatRoomRepo.getUsersList(
+      roomId: roomId,
+    );
     addUsersList(users);
     log.i("New Users List ADDED TO CHAT: ${usersList.length}");
-
   }
 }

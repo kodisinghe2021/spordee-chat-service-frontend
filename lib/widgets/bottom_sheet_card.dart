@@ -3,8 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:spordee_messaging_app/model/chat_room_model.dart';
 import 'package:spordee_messaging_app/controllers/chat/room_provider.dart';
 import 'package:spordee_messaging_app/util/constant.dart';
-
-
+import 'package:spordee_messaging_app/util/exceptions.dart';
 
 class BottomSheetForm extends StatelessWidget {
   BottomSheetForm({
@@ -28,17 +27,27 @@ class BottomSheetForm extends StatelessWidget {
                 Text(
                   Provider.of<RoomProvider>(context).getUserReult.first.name,
                 ),
+                const SizedBox(height: 10),
                 SizedBox(
                   height: h(context) * .06,
                   width: w(context) * .4,
                   child: ElevatedButton(
                     onPressed: () async {
-                      Provider.of<RoomProvider>(context, listen: false).addUser(
+                      bool isSuccess = await Provider.of<RoomProvider>(context,
+                              listen: false)
+                          .addUser(
                         room: room.chatRoomId,
                         memberId: value.getUserReult.first.userId,
                       );
-                      Provider.of<RoomProvider>(context, listen: false)
-                          .clearSearchResult();
+
+                      if (isSuccess) {
+                        Provider.of<RoomProvider>(context, listen: false)
+                            .clearSearchResult();
+                        showSuccessToast(
+                            "Successfully added");
+                      }else{
+                        showWarningToast(ExceptionMessage().errorMessage);
+                      }
                     },
                     child: const Text("Add user"),
                   ),
@@ -60,8 +69,12 @@ class BottomSheetForm extends StatelessWidget {
                 width: w(context) * .4,
                 child: ElevatedButton(
                   onPressed: () async {
-                    await Provider.of<RoomProvider>(context, listen: false)
-                        .findMemberByMobile(_mobile.text);
+                    bool isFound =
+                        await Provider.of<RoomProvider>(context, listen: false)
+                            .findMemberByMobile(_mobile.text);
+                    if (!isFound) {
+                      showWarningToast("user not found");
+                    }
                   },
                   child: const Text("Search user"),
                 ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 double w(BuildContext context) => MediaQuery.of(context).size.width;
 double h(BuildContext context) => MediaQuery.of(context).size.height;
@@ -26,9 +27,9 @@ InputDecoration searchBarDec(String hint, Function() onTap) => InputDecoration(
       contentPadding: const EdgeInsets.only(left: 20),
       suffixIcon: IconButton(
         onPressed: onTap,
-        icon:const Padding(
-          padding:  EdgeInsets.all(8.0),
-          child:  Icon(Icons.search),
+        icon: const Padding(
+          padding: EdgeInsets.all(8.0),
+          child: Icon(Icons.search),
         ),
       ),
       enabledBorder: OutlineInputBorder(
@@ -47,8 +48,30 @@ InputDecoration searchBarDec(String hint, Function() onTap) => InputDecoration(
       ),
     );
 
-
 enum MessageCategory {
   PUBLIC,
   PRIVATE,
+}
+
+void showWarningToast(String warning) {
+  Fluttertoast.showToast(
+    msg: warning,
+    toastLength: Toast.LENGTH_SHORT,
+    gravity: ToastGravity.CENTER,
+    timeInSecForIosWeb: 1,
+    backgroundColor: Colors.orangeAccent,
+    textColor: Colors.white,
+    fontSize: 17.0,
+  );
+}
+void showSuccessToast(String message) {
+  Fluttertoast.showToast(
+    msg: message,
+    toastLength: Toast.LENGTH_SHORT,
+    gravity: ToastGravity.CENTER,
+    timeInSecForIosWeb: 1,
+    backgroundColor: Colors.greenAccent,
+    textColor: Colors.white,
+    fontSize: 17.0,
+  );
 }

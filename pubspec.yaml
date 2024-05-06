@@ -41,6 +41,9 @@ dependencies:
   loading_animation_widget:
   provider: 
   device_info_plus:
+  hive:
+  hive_flutter:
+  fluttertoast:
 
 dev_dependencies:
   flutter_test:

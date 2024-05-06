@@ -1,6 +1,8 @@
 import 'dart:convert';
 
 import 'package:logger/logger.dart';
+import 'package:spordee_messaging_app/controllers/messages/room_page_meesage_list.dart';
+import 'package:spordee_messaging_app/model/send_message_model.dart';
 import 'package:spordee_messaging_app/service/local_store.dart';
 import 'package:spordee_messaging_app/util/dotenv.dart';
 import 'package:spordee_messaging_app/util/keys.dart';
@@ -65,6 +67,9 @@ void subscribeChatRoom(StompFrame frame) async {
           //   fromUser: res["fromUser"],
           // );
           Logger().i("Message from Socket: $res");
+          RoomPageMessageList().putMessage(
+            SendMessageModel.fromMap(res)
+          );
           // MessagesController().addMessage(model);
           // MessageReceivingBloc().add(
           //   MessageReceivedEvent(

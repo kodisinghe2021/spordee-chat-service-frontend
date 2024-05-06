@@ -2,8 +2,11 @@ import 'package:dio/dio.dart';
 import 'package:logger/logger.dart';
 import 'package:spordee_messaging_app/model/auth_user_model.dart';
 import 'package:spordee_messaging_app/model/chat_room_model.dart';
+import 'package:spordee_messaging_app/model/response_model.dart';
+import 'package:spordee_messaging_app/util/constant.dart';
 import 'package:spordee_messaging_app/util/dio_initilizer.dart';
 import 'package:spordee_messaging_app/util/dotenv.dart';
+import 'package:spordee_messaging_app/util/exceptions.dart';
 
 class ChatRoomRepo {
   final DioInit _dioInit = DioInit();
@@ -32,7 +35,15 @@ class ChatRoomRepo {
       );
       if (response.data != null) {
         Logger().d("response ${response.data}");
-        ChatRoomModel newModel = ChatRoomModel.fromMap(response.data);
+        ResponseModel responseModel = ResponseModel.fromMap(response.data);
+
+        if (responseModel.code != 201) {
+          return null;
+        }
+
+        ChatRoomModel newModel =
+            ChatRoomModel.fromMap(responseModel.data as Map<String, dynamic>);
+
         Logger().d("new model ${newModel.chatRoomId}");
         Logger().d("new model ${newModel.name}");
         return newModel;
@@ -55,10 +66,21 @@ class ChatRoomRepo {
       log.i("Response:  ${response.data}");
       log.i("type:  ${response.data.runtimeType}");
 
-      for (var item in response.data) {
-        Map<String, dynamic> map = item as Map<String, dynamic>;
-        log.i("after convert type:  ${map.runtimeType}");
-        ChatRoomModel model = ChatRoomModel.fromMap(map);
+      ResponseModel responseModel = ResponseModel.fromMap(response.data);
+
+      if (responseModel.code != 302) {
+        return [];
+      }
+
+
+      // casting
+      List<dynamic> dynamicList = responseModel.data as List<dynamic>;
+
+      for (var item in dynamicList.cast<Map<String, dynamic>>()) {
+        // Map<String, dynamic> map = item;
+
+        log.i("after convert type:  ${item.runtimeType}");
+        ChatRoomModel model = ChatRoomModel.fromMap(item);
         log.i("model:  ${model.runtimeType}");
         modelList.add(model);
         log.i("List Length:  ${modelList.length}");
@@ -83,8 +105,19 @@ class ChatRoomRepo {
         return null;
       }
 
+      Logger().d("response ${response.data}");
+      ResponseModel responseModel = ResponseModel.fromMap(response.data);
+
+      if (responseModel.code != 201) {
+        return null;
+      }
+      if (responseModel.code == 404) {
+        return null;
+      }
+
       log.i("RESPONSE: ${response.data}");
-      AuthUserModel model = AuthUserModel.fromMap(response.data);
+      AuthUserModel model =
+          AuthUserModel.fromMap(responseModel.data as Map<String, dynamic>);
       log.i("MODEL: ${model.userId}");
       return model;
     } on DioException catch (e) {
@@ -109,9 +142,29 @@ class ChatRoomRepo {
         },
       );
       log.i(reposnse.data);
-      ChatRoomModel model = ChatRoomModel.fromMap(reposnse.data);
-      log.i(model.chatRoomId);
-      return model;
+
+      ResponseModel responseModel = ResponseModel.fromMap(reposnse.data);
+
+      if (responseModel.code == 403) {
+        ExceptionMessage().setMessage("User Already in the list");
+        return null;
+      }
+
+      if (responseModel.code == 404) {
+        ExceptionMessage().setMessage("Room Not Available");
+        return null;
+      }
+
+      if (responseModel.code == 201) {
+        ChatRoomModel model =
+            ChatRoomModel.fromMap(responseModel.data as Map<String, dynamic>);
+
+        log.i(model.chatRoomId);
+        return model;
+      }
+
+      ExceptionMessage().setMessage(responseModel.message);
+      return null;
     } on DioException catch (e) {
       log.e(e.error);
       return null;
@@ -121,20 +174,30 @@ class ChatRoomRepo {
     }
   }
 
-  Future<List<String>> getUsersList(String roomId) async {
+  Future<List<String>> getUsersList({
+    required String roomId,
+  }) async {
     try {
-      Response response =
-          await _dioInit.dioInit.get(getAllUserListPath(roomId));
+      Response response = await _dioInit.dioInit.get(
+        getAllUserListPath(roomId),
+      );
       if (response.data == null) {
         return [];
       }
 
       log.i("RESPONSE: ${response.data}");
       log.i("RESPONSE: ${response.data.runtimeType}");
+      ResponseModel responseModel = ResponseModel.fromMap(response.data);
+      if (responseModel.code == 302) {
 
-      List<dynamic> lst = response.data as List<dynamic>;
 
-      return lst.map((e) => e.toString()).toList();
+
+        List<dynamic> lst = responseModel.data as List<dynamic>;
+
+        return lst.map((e) => e.toString()).toList();
+      } else {
+        return [];
+      }
     } on DioException catch (e) {
       log.e("DIO ERROR: ${e.error}");
       return [];
