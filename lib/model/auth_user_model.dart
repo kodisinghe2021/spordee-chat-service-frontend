@@ -26,10 +26,10 @@ class AuthUserModel {
 
   factory AuthUserModel.fromMap(Map<String, dynamic> map) {
     return AuthUserModel(
-      userId: map['userId'] as String,
-      name: map['name'] as String,
-      mobile: map['mobile'] as String,
-      deviceId: map['deviceId'] as String,
+      userId: map['userId'].toString(),
+      name: map['name'].toString(),
+      mobile: map['mobile'].toString(),
+      deviceId: map['deviceId'].toString(),
     );
   }
 

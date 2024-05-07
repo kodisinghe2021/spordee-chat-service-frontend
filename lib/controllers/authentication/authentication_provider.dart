@@ -51,7 +51,7 @@ class AuthenticationProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> login({
+  Future<bool> login({
     required String mobile,
   }) async {
     AuthUserModel? model = await _userRepo.login(mobile: mobile);
@@ -59,9 +59,10 @@ class AuthenticationProvider extends ChangeNotifier {
     if (model != null) {
       await _localStore.addToLocal(Keys.userId, model.userId);
       await authenticate();
-      return;
+      return true;
     }else{
       await authenticate();
+      return false;
     }
   }
 }

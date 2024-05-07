@@ -9,6 +9,7 @@ import 'package:spordee_messaging_app/controllers/route_controller.dart';
 import 'package:spordee_messaging_app/screens/chat_room.dart';
 import 'package:spordee_messaging_app/service/local_store.dart';
 import 'package:spordee_messaging_app/util/constant.dart';
+import 'package:spordee_messaging_app/util/exceptions.dart';
 import 'package:spordee_messaging_app/util/keys.dart';
 import 'package:spordee_messaging_app/widgets/bottom_sheet_card.dart';
 
@@ -22,6 +23,8 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final TextEditingController _roomName = TextEditingController();
+  final ValueNotifier<bool> isLoadingA = ValueNotifier(false);
+  final ValueNotifier<bool> isLoadingB = ValueNotifier(false);
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -152,12 +155,25 @@ class _HomeScreenState extends State<HomeScreen> {
                   SizedBox(
                     height: h(context) * .06,
                     width: w(context) * .4,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Provider.of<RoomProvider>(context, listen: false)
-                            .createChatRoom(name: _roomName.text);
-                      },
-                      child: const Text("Create Chat Room"),
+                    child: ValueListenableBuilder<bool>(
+                      valueListenable: isLoadingA,
+                      builder: (context, value, child) => value
+                          ? const CupertinoActivityIndicator()
+                          : ElevatedButton(
+                              onPressed: () async {
+                                isLoadingA.value = true;
+                                bool isSuccess =
+                                    await Provider.of<RoomProvider>(context,
+                                            listen: false)
+                                        .createChatRoom(name: _roomName.text);
+                                isLoadingA.value = false;
+                                if (!isSuccess) {
+                                  showWarningToast(
+                                      ExceptionMessage().errorMessage);
+                                }
+                              },
+                              child: const Text("Create Chat Room"),
+                            ),
                     ),
                   ),
                 ],

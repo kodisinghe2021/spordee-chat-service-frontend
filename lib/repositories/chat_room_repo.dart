@@ -3,7 +3,6 @@ import 'package:logger/logger.dart';
 import 'package:spordee_messaging_app/model/auth_user_model.dart';
 import 'package:spordee_messaging_app/model/chat_room_model.dart';
 import 'package:spordee_messaging_app/model/response_model.dart';
-import 'package:spordee_messaging_app/util/constant.dart';
 import 'package:spordee_messaging_app/util/dio_initilizer.dart';
 import 'package:spordee_messaging_app/util/dotenv.dart';
 import 'package:spordee_messaging_app/util/exceptions.dart';
@@ -33,6 +32,7 @@ class ChatRoomRepo {
         CREATE_CHAT_ROOM,
         data: model.toMap(),
       );
+        Logger().d("response ${response.data}");
       if (response.data != null) {
         Logger().d("response ${response.data}");
         ResponseModel responseModel = ResponseModel.fromMap(response.data);
@@ -51,7 +51,13 @@ class ChatRoomRepo {
         return null;
       }
     } on DioException catch (e) {
+      if(e.response!.statusCode == 404){
+        ResponseModel res = ResponseModel.fromMap(e.response!.data);
+        ExceptionMessage().setMessage(res.message);
+      }
       Logger().e(e.error);
+      Logger().e(e.response);
+      Logger().e(e.message);
       return null;
     } catch (e) {
       Logger().e(e);
@@ -68,10 +74,9 @@ class ChatRoomRepo {
 
       ResponseModel responseModel = ResponseModel.fromMap(response.data);
 
-      if (responseModel.code != 302) {
+      if (responseModel.code != 200) {
         return [];
       }
-
 
       // casting
       List<dynamic> dynamicList = responseModel.data as List<dynamic>;
@@ -108,13 +113,6 @@ class ChatRoomRepo {
       Logger().d("response ${response.data}");
       ResponseModel responseModel = ResponseModel.fromMap(response.data);
 
-      if (responseModel.code != 201) {
-        return null;
-      }
-      if (responseModel.code == 404) {
-        return null;
-      }
-
       log.i("RESPONSE: ${response.data}");
       AuthUserModel model =
           AuthUserModel.fromMap(responseModel.data as Map<String, dynamic>);
@@ -122,6 +120,8 @@ class ChatRoomRepo {
       return model;
     } on DioException catch (e) {
       log.e("DIO ERROR: ${e.error}");
+      log.e("DIO ERROR: ${e.response!.statusCode}");
+      log.e("DIO ERROR: ${e.response!.data}");
       return null;
     } catch (e) {
       log.e("ERROR: $e");

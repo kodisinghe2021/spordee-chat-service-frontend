@@ -48,6 +48,7 @@ class BottomSheetForm extends StatelessWidget {
                       }else{
                         showWarningToast(ExceptionMessage().errorMessage);
                       }
+                      Provider.of<RoomProvider>(context, listen: false).clearSearchResult();
                     },
                     child: const Text("Add user"),
                   ),
