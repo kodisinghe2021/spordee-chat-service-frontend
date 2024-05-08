@@ -1,7 +1,9 @@
 import 'package:dio/dio.dart';
 import 'package:logger/logger.dart';
+import 'package:spordee_messaging_app/model/add_user_req_model.dart';
 import 'package:spordee_messaging_app/model/auth_user_model.dart';
 import 'package:spordee_messaging_app/model/chat_room_model.dart';
+import 'package:spordee_messaging_app/model/chat_user_model.dart';
 import 'package:spordee_messaging_app/model/response_model.dart';
 import 'package:spordee_messaging_app/util/dio_initilizer.dart';
 import 'package:spordee_messaging_app/util/dotenv.dart';
@@ -32,7 +34,7 @@ class ChatRoomRepo {
         CREATE_CHAT_ROOM,
         data: model.toMap(),
       );
-        Logger().d("response ${response.data}");
+      Logger().d("response ${response.data}");
       if (response.data != null) {
         Logger().d("response ${response.data}");
         ResponseModel responseModel = ResponseModel.fromMap(response.data);
@@ -51,7 +53,7 @@ class ChatRoomRepo {
         return null;
       }
     } on DioException catch (e) {
-      if(e.response!.statusCode == 404){
+      if (e.response!.statusCode == 404) {
         ResponseModel res = ResponseModel.fromMap(e.response!.data);
         ExceptionMessage().setMessage(res.message);
       }
@@ -65,10 +67,19 @@ class ChatRoomRepo {
     }
   }
 
-  Future<List<ChatRoomModel>> getAllRooms(String userId) async {
+  Future<List<ChatRoomModel>> getAllRooms({
+    required String userId,
+    required String deviceId,
+  }) async {
     List<ChatRoomModel> modelList = [];
     try {
-      Response response = await _dioInit.dioInit.get(getChatRoomsPath(userId));
+      Response response = await _dioInit.dioInit.get(
+        GET_ALL_ROOMS,
+        data: {
+          "id": userId,
+          "deviceId": deviceId,
+        },
+      );
       log.i("Response:  ${response.data}");
       log.i("type:  ${response.data.runtimeType}");
 
@@ -95,6 +106,8 @@ class ChatRoomRepo {
 
     } on DioException catch (e) {
       log.e("DIO ERROR: ${e.error}");
+      log.e("DIO ERROR: ${e.message}");
+      log.e("DIO ERROR: ${e.response!.data}");
     } catch (e) {
       log.e("ERROR $e");
     }
@@ -130,16 +143,22 @@ class ChatRoomRepo {
   }
 
   Future<ChatRoomModel?> addUser({
-    required String room,
-    required String memberId,
+    required String newUserId,
+    required String newUserDeviceId,
+    required String chatRoomId,
+    required String adminId,
+    required String adminDeviceId,
   }) async {
     try {
       Response reposnse = await _dioInit.dioInit.post(
         ADD_MEMBER_TO_CHAT,
-        data: {
-          "userId": memberId,
-          "chatRoomId": room,
-        },
+        data: AddUserRequestModel(
+          newUserId: newUserId,
+          newUserDeviceId: newUserDeviceId,
+          chatRoomId: chatRoomId,
+          adminId: adminId,
+          adminDeviceId: adminDeviceId,
+        ).toMap(),
       );
       log.i(reposnse.data);
 
@@ -174,7 +193,7 @@ class ChatRoomRepo {
     }
   }
 
-  Future<List<String>> getUsersList({
+  Future<List<ChatUserModel>> getUsersList({
     required String roomId,
   }) async {
     try {
@@ -188,13 +207,10 @@ class ChatRoomRepo {
       log.i("RESPONSE: ${response.data}");
       log.i("RESPONSE: ${response.data.runtimeType}");
       ResponseModel responseModel = ResponseModel.fromMap(response.data);
-      if (responseModel.code == 302) {
-
-
-
+      if (responseModel.code == 200) {
         List<dynamic> lst = responseModel.data as List<dynamic>;
 
-        return lst.map((e) => e.toString()).toList();
+        return lst.map((e) => ChatUserModel.fromMap(e)).toList();
       } else {
         return [];
       }

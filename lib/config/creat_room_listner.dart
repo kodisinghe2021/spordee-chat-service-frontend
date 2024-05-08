@@ -1,9 +1,13 @@
+import 'dart:collection';
 import 'dart:convert';
 
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:logger/logger.dart';
+import 'package:spordee_messaging_app/controllers/chat/room_provider.dart';
 import 'package:spordee_messaging_app/controllers/messages/room_page_meesage_list.dart';
 import 'package:spordee_messaging_app/model/send_message_model.dart';
 import 'package:spordee_messaging_app/service/local_store.dart';
+import 'package:spordee_messaging_app/util/constant.dart';
 import 'package:spordee_messaging_app/util/dotenv.dart';
 import 'package:spordee_messaging_app/util/keys.dart';
 import 'package:stomp_dart_client/stomp_dart_client.dart';
@@ -11,16 +15,21 @@ import 'package:stomp_dart_client/stomp_dart_client.dart';
 //==================================== init stomp client and activate
 Future<bool> activeChatRoom() async {
   Logger().i("ACTIVATE>>>>");
-  stompClient.activate();
-  if (stompClient.connected) {
+  stompClientChatRoom.activate();
+  if (stompClientChatRoom.connected) {
     Logger().i("Connected.........");
   }
   await Future.delayed(const Duration(milliseconds: 1000));
   return true;
 }
 
+Future<void> disconnectChatRoom() async {
+  stompClientChatRoom.deactivate();
+  await Future.delayed(const Duration(milliseconds: 500));
+}
+
 //==================================== Make stomp client object
-final stompClient = StompClient(
+final stompClientChatRoom = StompClient(
   config: StompConfig(
     url: WS_URL,
     onConnect: subscribeChatRoom,
@@ -46,14 +55,24 @@ void subscribeChatRoom(StompFrame frame) async {
   Logger().i("ON CONNECT ++++==>> Triggered");
   final chatRoomId = await LocalStore().getFromLocal(Keys.roomId);
   final userId = await LocalStore().getFromLocal(Keys.userId);
+  final String? deviceId = await LocalStore().getFromLocal(Keys.deviceId);
+  AndroidDeviceInfo androidDeviceInfo = await DeviceInfoPlugin().androidInfo;
   if (chatRoomId == null) {
     Logger().d("Chat Room ID IS EMPTY");
+    return;
+  }
+  if (userId == null) {
+    Logger().d("USER ID IS EMPTY");
+    return;
+  }
+  if (deviceId == null) {
+    Logger().d("DEVICE ID IS EMPTY");
     return;
   }
   Logger().d("Chat Room ID:: $chatRoomId");
   Logger().w("Waiting for subscribe");
   await Future.delayed(const Duration(milliseconds: 1000));
-  stompClient.subscribe(
+  stompClientChatRoom.subscribe(
       destination: wsSubscribe(chatRoomId),
       callback: (frame) {
         Logger().i("On Subscribe :: Callback :: ==>> ${frame.body.toString()}");
@@ -67,9 +86,11 @@ void subscribeChatRoom(StompFrame frame) async {
           //   fromUser: res["fromUser"],
           // );
           Logger().i("Message from Socket: $res");
-          RoomPageMessageList().putMessage(
-            SendMessageModel.fromMap(res)
-          );
+          SendMessageModel sendMessageModel = SendMessageModel.fromMap(res);
+          RoomPageMessageList().putMessage(sendMessageModel);
+          if(sendMessageModel.category == MessageCategory.JOIN.name){
+          RoomProvider().addUsersList(sendMessageModel.receiversIdSet);
+          }
           // MessagesController().addMessage(model);
           // MessageReceivingBloc().add(
           //   MessageReceivedEvent(
@@ -81,8 +102,9 @@ void subscribeChatRoom(StompFrame frame) async {
         }
       },
       headers: {
-        "userid": userId!,
+        "userid": userId,
         "roomid": chatRoomId,
+        "deviceId": deviceId,
       });
   // stompClient.send(
   //   destination: wsSubscribe(chatRoomId),

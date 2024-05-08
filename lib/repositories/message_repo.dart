@@ -1,5 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:logger/logger.dart';
+import 'package:spordee_messaging_app/model/chat_room_model.dart';
+import 'package:spordee_messaging_app/model/chat_user_model.dart';
 import 'package:spordee_messaging_app/model/send_message_model.dart';
 import 'package:spordee_messaging_app/util/constant.dart';
 import 'package:spordee_messaging_app/util/dio_initilizer.dart';
@@ -8,16 +10,19 @@ import 'package:spordee_messaging_app/util/dotenv.dart';
 class MessageRepo {
   final DioInit _dioInit = DioInit();
   final Logger _log = Logger();
+
   Future<void> sendPublicMessage({
     required String message,
     required String userId,
-    required List<String> roomUsers,
+    required String deviceId,
+    required List<ChatUserModel> roomUsers,
     required MessageCategory category,
     required String roomId,
   }) async {
     SendMessageModel model = SendMessageModel(
+      messageId: -1,
       message: message,
-      senderId: userId,
+      senderId: ChatUserModel(id: userId, deviceId:deviceId),
       receiversIdSet: roomUsers,
       category: category.name,
       time: "",

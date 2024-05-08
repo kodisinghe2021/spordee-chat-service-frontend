@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:logger/logger.dart';
 import 'package:spordee_messaging_app/controllers/messages/room_page_meesage_list.dart';
+import 'package:spordee_messaging_app/model/chat_user_model.dart';
 import 'package:spordee_messaging_app/model/send_message_model.dart';
 import 'package:spordee_messaging_app/repositories/message_repo.dart';
 import 'package:spordee_messaging_app/service/local_store.dart';
@@ -42,12 +43,13 @@ class MessageProvider with ChangeNotifier {
 
   Future<void> sendPublicMessage({
     required String message,
-    required List<String> roomUsers,
+    required List<ChatUserModel> roomUsers,
   }) async {
     String? userId = await _localStore.getFromLocal(Keys.userId);
     String? roomId = await _localStore.getFromLocal(Keys.roomId);
-    if (userId == null || roomId == null) {
-      _log.w("User id or room id is null");
+    String? deviceId = await _localStore.getFromLocal(Keys.deviceId);
+    if (userId == null || roomId == null || deviceId == null) {
+      _log.w("Some Value NULL");
       return;
     }
     await _messageRepo.sendPublicMessage(
@@ -55,7 +57,7 @@ class MessageProvider with ChangeNotifier {
       userId: userId,
       roomUsers: roomUsers,
       category: MessageCategory.PUBLIC,
-      roomId: roomId,
+      roomId: roomId, deviceId: deviceId,
     );
   }
 

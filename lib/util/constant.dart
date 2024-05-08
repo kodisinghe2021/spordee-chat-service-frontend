@@ -51,6 +51,7 @@ InputDecoration searchBarDec(String hint, Function() onTap) => InputDecoration(
 enum MessageCategory {
   PUBLIC,
   PRIVATE,
+  JOIN,
 }
 
 void showWarningToast(String warning) {

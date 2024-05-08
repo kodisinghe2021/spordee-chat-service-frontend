@@ -24,7 +24,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final TextEditingController _roomName = TextEditingController();
   final ValueNotifier<bool> isLoadingA = ValueNotifier(false);
-  final ValueNotifier<bool> isLoadingB = ValueNotifier(false);
+  final ValueNotifier<bool> isLoadingGetRoomList = ValueNotifier(false);
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -80,10 +80,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                       );
 
                                       bool isSuccess = await activeChatRoom();
-                                      await Provider.of<MessageProvider>(
-                                        context,
-                                        listen: false,
-                                      ).getMessagesWithPage();
+                                      // await Provider.of<MessageProvider>(
+                                      //   context,
+                                      //   listen: false,
+                                      // ).getMessagesWithPage();
 
                                       if (isSuccess) {
                                         Provider.of<RouteProvider>(
@@ -98,6 +98,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     color: Colors.blueAccent,
                                   ),
                                 ),
+
                                 title: Text(
                                     "name: ${value.getChatRooms[index].name}"),
                                 trailing: snapshot.data ==
@@ -139,17 +140,24 @@ class _HomeScreenState extends State<HomeScreen> {
                   SizedBox(
                     height: h(context) * .06,
                     width: w(context) * .4,
-                    child: ElevatedButton(
-                      onPressed: () async {
-                        bool isCaught = await Provider.of<RoomProvider>(
-                          context,
-                          listen: false,
-                        ).getAllRooms();
-                        if (!isCaught) {
-                          showWarningToast("No Rooms");
-                        }
-                      },
-                      child: const Text("Get Room List"),
+                    child: ValueListenableBuilder<bool>(
+                      valueListenable: isLoadingGetRoomList,
+                      builder: (context, value, child) => value
+                          ? const CupertinoActivityIndicator()
+                          : ElevatedButton(
+                              onPressed: () async {
+                                isLoadingGetRoomList.value = true;
+                                bool isCaught = await Provider.of<RoomProvider>(
+                                  context,
+                                  listen: false,
+                                ).getAllRooms();
+                                if (!isCaught) {
+                                  showWarningToast("No Rooms");
+                                }
+                                isLoadingGetRoomList.value = false;
+                              },
+                              child: const Text("Get Room List"),
+                            ),
                     ),
                   ),
                   SizedBox(

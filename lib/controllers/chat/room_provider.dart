@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:logger/logger.dart';
 import 'package:spordee_messaging_app/model/auth_user_model.dart';
 import 'package:spordee_messaging_app/model/chat_room_model.dart';
+import 'package:spordee_messaging_app/model/chat_user_model.dart';
 import 'package:spordee_messaging_app/repositories/chat_room_repo.dart';
 import 'package:spordee_messaging_app/service/local_store.dart';
 import 'package:spordee_messaging_app/util/keys.dart';
@@ -19,14 +20,14 @@ class RoomProvider extends ChangeNotifier {
 
   List<ChatRoomModel> _chatRooms = [];
   List<AuthUserModel> _userResult = [];
-  List<String> _usersList = [];
+  List<ChatUserModel> _usersList = [];
 
-  void addUsersList(List<String> list) {
+  void addUsersList(List<ChatUserModel> list) {
     _usersList = list;
     notifyListeners();
   }
 
-  List<String> get usersList => _usersList;
+  List<ChatUserModel> get usersList => _usersList;
 
   void _addUSearchResult(AuthUserModel model) {
     _userResult.clear();
@@ -87,13 +88,23 @@ class RoomProvider extends ChangeNotifier {
 
   Future<bool> getAllRooms() async {
     String? userId = await _localStore.getFromLocal(Keys.userId);
-    log.d("USER ID :: ${userId.toString()}");
+    String? deviceId = await _localStore.getFromLocal(Keys.deviceId);
 
     if (userId == null) {
       log.w("User NULL");
       return false;
     }
-    List<ChatRoomModel> models = await _chatRoomRepo.getAllRooms(userId);
+
+    if (deviceId == null) {
+      log.w("DeviceID NULL");
+      return false;
+    }
+    log.d("USER ID :: ${userId.toString()}");
+    log.d("DEVICE ID :: ${deviceId.toString()}");
+
+    List<ChatRoomModel> models =
+        await _chatRoomRepo.getAllRooms(userId: userId, deviceId: deviceId);
+        
     log.i("NEW MODELS RECEIVED :: ${models.length}");
     _replaceRooms(models);
     if (models.isEmpty) {
@@ -115,13 +126,30 @@ class RoomProvider extends ChangeNotifier {
   Future<bool> addUser({
     required String room,
     required String memberId,
+    required String memberDeviceId,
   }) async {
     log.i("Chat RoomId : $room");
     log.i("Member : $memberId");
+    String? userId = await _localStore.getFromLocal(Keys.userId);
+    String? deviceId = await _localStore.getFromLocal(Keys.deviceId);
 
+    log.d("USER ID :: ${userId.toString()}");
+
+    if (userId == null) {
+      log.w("User NULL");
+      return false;
+    }
+
+    if (deviceId == null) {
+      log.w("DeviceID NULL");
+      return false;
+    }
     ChatRoomModel? chatRoomModel = await _chatRoomRepo.addUser(
-      room: room,
-      memberId: memberId,
+      adminId: userId,
+      adminDeviceId: deviceId,
+      chatRoomId: room,
+      newUserDeviceId: memberDeviceId,
+      newUserId: memberId,
     );
 
     if (chatRoomModel == null) {
@@ -141,7 +169,7 @@ class RoomProvider extends ChangeNotifier {
     }
 
     log.i("Chat RoomId : $roomId");
-    List<String> users = await _chatRoomRepo.getUsersList(
+    List<ChatUserModel> users = await _chatRoomRepo.getUsersList(
       roomId: roomId,
     );
     addUsersList(users);

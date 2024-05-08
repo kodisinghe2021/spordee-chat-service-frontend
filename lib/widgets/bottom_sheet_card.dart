@@ -38,17 +38,18 @@ class BottomSheetForm extends StatelessWidget {
                           .addUser(
                         room: room.chatRoomId,
                         memberId: value.getUserReult.first.userId,
+                        memberDeviceId: value.getUserReult.first.deviceId,
                       );
 
                       if (isSuccess) {
                         Provider.of<RoomProvider>(context, listen: false)
                             .clearSearchResult();
-                        showSuccessToast(
-                            "Successfully added");
-                      }else{
+                        showSuccessToast("Successfully added");
+                      } else {
                         showWarningToast(ExceptionMessage().errorMessage);
                       }
-                      Provider.of<RoomProvider>(context, listen: false).clearSearchResult();
+                      Provider.of<RoomProvider>(context, listen: false)
+                          .clearSearchResult();
                     },
                     child: const Text("Add user"),
                   ),

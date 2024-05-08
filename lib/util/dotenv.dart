@@ -1,12 +1,12 @@
-String BASE_URL = "https://f5af-124-43-78-89.ngrok-free.app";
-String WS_URL = "ws://f5af-124-43-78-89.ngrok-free.app/ws";
+String BASE_URL = "https://f46d-124-43-78-89.ngrok-free.app";
+String WS_URL = "ws://f46d-124-43-78-89.ngrok-free.app/ws";
 //===============================================================
 String getUserPath(String userID) => "/api/user/"+userID;
 String getUserByMobilePath(String mobile) => "/api/user/mobile/"+mobile;
-String getChatRoomsPath(String userID) => "/public-chat-room/"+userID;
 String getAllUserListPath(String roomId) => "/public-chat-room/get-users/"+roomId;
 String sendMessagePath(String roomId) => "/message/"+roomId;
 String getOfflineMessagePath(String userId, String roomId) => "/message/"+userId+"/"+roomId  ;
+String GET_ALL_ROOMS = "/public-chat-room";
 String REGISTER_USER = "/api/user/register";
 String CREATE_CHAT_ROOM = "/public-chat-room";
 String LOGIN = "/api/user/login";

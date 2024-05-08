@@ -2,11 +2,13 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
+import 'package:spordee_messaging_app/config/creat_room_listner.dart';
 import 'package:spordee_messaging_app/controllers/authentication/authentication_provider.dart';
 import 'package:spordee_messaging_app/controllers/chat/room_provider.dart';
 import 'package:spordee_messaging_app/controllers/messages/message_provider.dart';
 import 'package:spordee_messaging_app/controllers/messages/room_page_meesage_list.dart';
 import 'package:spordee_messaging_app/controllers/route_controller.dart';
+import 'package:spordee_messaging_app/model/chat_user_model.dart';
 import 'package:spordee_messaging_app/util/constant.dart';
 
 class ChatRoomScreen extends StatefulWidget {
@@ -29,10 +31,11 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          onPressed: () {
+          onPressed: () async {
             Logger().i("Tapped");
             RoomPageMessageList().clearMessages();
             //  AuthenticationProvider().authenticate();
+            await disconnectChatRoom();
             RouteProvider().navigatTo(Routes.tohomeScreen);
           },
           icon: const Icon(Icons.arrow_back_ios),
@@ -114,7 +117,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                       onPressed: () async {
                         isLoading.value = true;
                         //  TODO: Message sending ui
-                        List<String> roomUsers = RoomProvider().usersList;
+                        List<ChatUserModel> roomUsers = RoomProvider().usersList;
                         Logger().w("USERS : ${roomUsers.toString()}");
                         await MessageProvider().sendPublicMessage(
                           message: _message.text,
