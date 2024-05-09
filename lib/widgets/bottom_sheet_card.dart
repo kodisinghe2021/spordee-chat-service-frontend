@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 import 'package:spordee_messaging_app/model/chat_room_model.dart';
 import 'package:spordee_messaging_app/controllers/chat/room_provider.dart';
@@ -33,10 +34,12 @@ class BottomSheetForm extends StatelessWidget {
                   width: w(context) * .4,
                   child: ElevatedButton(
                     onPressed: () async {
+                      Logger().d("Room ID : ${room.publicChatRoomId}");
+                      Logger().d("device ID : ${value.getUserReult.first.deviceId}");
                       bool isSuccess = await Provider.of<RoomProvider>(context,
                               listen: false)
                           .addUser(
-                        room: room.chatRoomId,
+                        room: room.publicChatRoomId,
                         memberId: value.getUserReult.first.userId,
                         memberDeviceId: value.getUserReult.first.deviceId,
                       );

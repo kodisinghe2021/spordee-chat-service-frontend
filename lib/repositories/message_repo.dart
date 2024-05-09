@@ -22,7 +22,7 @@ class MessageRepo {
     SendMessageModel model = SendMessageModel(
       messageId: -1,
       message: message,
-      senderId: ChatUserModel(id: userId, deviceId:deviceId),
+      sendersId: userId,
       receiversIdSet: roomUsers,
       category: category.name,
       time: "",

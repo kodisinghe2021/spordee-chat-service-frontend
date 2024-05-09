@@ -1,5 +1,5 @@
-String BASE_URL = "https://f46d-124-43-78-89.ngrok-free.app";
-String WS_URL = "ws://f46d-124-43-78-89.ngrok-free.app/ws";
+String BASE_URL = "https://ca12-124-43-78-217.ngrok-free.app";
+String WS_URL = "ws://ca12-124-43-78-217.ngrok-free.app/ws";
 //===============================================================
 String getUserPath(String userID) => "/api/user/"+userID;
 String getUserByMobilePath(String mobile) => "/api/user/mobile/"+mobile;

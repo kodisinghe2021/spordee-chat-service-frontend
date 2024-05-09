@@ -156,7 +156,7 @@ class RoomProvider extends ChangeNotifier {
       Logger().d(" IN REPO MODEL NULL::");
       return false;
     } else {
-      Logger().d(" IN REPO :: ${chatRoomModel.chatRoomId}");
+      Logger().d(" IN REPO :: ${chatRoomModel.publicChatRoomId}");
       return true;
     }
   }

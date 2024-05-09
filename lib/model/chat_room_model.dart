@@ -5,15 +5,15 @@ import 'dart:convert';
 
 class ChatRoomModel {
   
-   String chatRoomId;
-   String name;
+   String publicChatRoomId;
+   String publicChatRoomName;
    String description;
    String createdBy;
    String deviceId;
    String updatedAt;
   ChatRoomModel({
-    required this.chatRoomId,
-    required this.name,
+    required this.publicChatRoomId,
+    required this.publicChatRoomName,
     required this.description,
     required this.createdBy,
     required this.deviceId,
@@ -23,8 +23,8 @@ class ChatRoomModel {
 
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
-      'id': chatRoomId,
-      'name': name,
+      'publicChatRoomId': publicChatRoomId,
+      'name': publicChatRoomName,
       'description': description,
       'createdBy': createdBy,
       'deviceId': deviceId,
@@ -34,8 +34,8 @@ class ChatRoomModel {
 
   factory ChatRoomModel.fromMap(Map<String, dynamic> map) {
     return ChatRoomModel(
-      chatRoomId:map['id']!=null? map['id'] as String:"",
-      name: map['name']!=null? map['name'] as String:"",
+      publicChatRoomId:map['publicChatRoomId']!=null? map['publicChatRoomId'] as String:"",
+      publicChatRoomName: map['publicChatRoomName']!=null? map['publicChatRoomName'] as String:"",
       description: map['description']!=null? map['description'] as String:"",
       createdBy: map['createdBy'] !=null?map['createdBy']  as String:"",
       deviceId: map['deviceId']!=null? map['deviceId']  as String:"",

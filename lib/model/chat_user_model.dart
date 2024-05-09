@@ -2,25 +2,25 @@ import 'dart:convert';
 
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 class ChatUserModel {
-String id;
-String deviceId;
+String chatUserId;
+String chatUserDeviceId;
   ChatUserModel({
-    required this.id,
-    required this.deviceId,
+    required this.chatUserId,
+    required this.chatUserDeviceId,
   });
 
 
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
-      'id': id,
-      'deviceId': deviceId,
+      'chatUserId': chatUserId,
+      'chatUserDeviceId': chatUserDeviceId,
     };
   }
 
   factory ChatUserModel.fromMap(Map<String, dynamic> map) {
     return ChatUserModel(
-      id: map['id'] as String,
-      deviceId: map['deviceId'] as String,
+      chatUserId: map['chatUserId'] as String,
+      chatUserDeviceId: map['chatUserDeviceId'] as String,
     );
   }
 

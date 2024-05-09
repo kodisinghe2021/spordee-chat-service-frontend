@@ -6,14 +6,14 @@ import 'package:spordee_messaging_app/model/chat_user_model.dart';
 class SendMessageModel {
   double messageId;
   String message;
-  ChatUserModel senderId;
+  String sendersId;
   List<ChatUserModel> receiversIdSet;
   String category;
   String time;
   SendMessageModel({
     required this.messageId,
     required this.message,
-    required this.senderId,
+    required this.sendersId,
     required this.receiversIdSet,
     required this.category,
     required this.time,
@@ -23,7 +23,7 @@ class SendMessageModel {
     return <String, dynamic>{
       'messageId': messageId,
       'message': message,
-      'senderId': senderId.toMap(),
+      'senderId': sendersId,
       'receiversIdSet': receiversIdSet.map((x) => x.toMap()).toList(),
       'category': category,
       'time': time,
@@ -32,9 +32,9 @@ class SendMessageModel {
 
   factory SendMessageModel.fromMap(Map<String, dynamic> map) {
     return SendMessageModel(
-      messageId: map['messageId'] != null? double.parse(map['messageId'].toString()): -1,
+      messageId: map['messageId'] != null?  double.parse(map['messageId'].toString()):-1,
       message: map['message'].toString(),
-      senderId:map['senderId'] !=null? ChatUserModel.fromMap(map['senderId'] as Map<String,dynamic>):ChatUserModel(id: "", deviceId: ""),
+      sendersId: map['senderId'].toString(),
       receiversIdSet:map['receiversIdSet'] != null? List<ChatUserModel>.from((map['receiversIdSet'] as List<dynamic>).map<ChatUserModel>((x) => ChatUserModel.fromMap(x as Map<String,dynamic>),),):[],
       category: map['category'].toString(),
       time: map['time'].toString(),

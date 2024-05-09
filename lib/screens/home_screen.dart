@@ -65,7 +65,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   onPressed: () async {
                                     // save roomId to local
                                     String roomId =
-                                        value.getChatRooms[index].chatRoomId;
+                                        value.getChatRooms[index].publicChatRoomId;
                                     bool isLocalStoreSuucess =
                                         await LocalStore()
                                             .addToLocal(Keys.roomId, roomId);
@@ -100,7 +100,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
 
                                 title: Text(
-                                    "name: ${value.getChatRooms[index].name}"),
+                                    "name: ${value.getChatRooms[index].publicChatRoomName}"),
                                 trailing: snapshot.data ==
                                         value.getChatRooms[index].createdBy
                                     ? TextButton(

@@ -22,8 +22,8 @@ class ChatRoomRepo {
   }) async {
     try {
       ChatRoomModel model = ChatRoomModel(
-        chatRoomId: id,
-        name: name,
+        publicChatRoomId: id,
+        publicChatRoomName: name,
         description: description,
         createdBy: createdBy,
         deviceId: deviceId,
@@ -46,8 +46,8 @@ class ChatRoomRepo {
         ChatRoomModel newModel =
             ChatRoomModel.fromMap(responseModel.data as Map<String, dynamic>);
 
-        Logger().d("new model ${newModel.chatRoomId}");
-        Logger().d("new model ${newModel.name}");
+        Logger().d("new model ${newModel.publicChatRoomId}");
+        Logger().d("new model ${newModel.publicChatRoomName}");
         return newModel;
       } else {
         return null;
@@ -75,10 +75,11 @@ class ChatRoomRepo {
     try {
       Response response = await _dioInit.dioInit.get(
         GET_ALL_ROOMS,
-        data: {
-          "id": userId,
-          "deviceId": deviceId,
-        },
+        data: ChatUserModel(
+          chatUserId: userId,
+          chatUserDeviceId: deviceId,
+        ).toMap(),
+
       );
       log.i("Response:  ${response.data}");
       log.i("type:  ${response.data.runtimeType}");
@@ -178,7 +179,7 @@ class ChatRoomRepo {
         ChatRoomModel model =
             ChatRoomModel.fromMap(responseModel.data as Map<String, dynamic>);
 
-        log.i(model.chatRoomId);
+        log.i(model.publicChatRoomId);
         return model;
       }
 
