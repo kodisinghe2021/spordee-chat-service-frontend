@@ -95,7 +95,6 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                          String? roomId = await LocalStore().getFromLocal(Keys.roomId);
                          if(roomId != null){
                           Provider.of<ChatRoomScreenController>(context, listen: false).addOflineMessagesToOnMemoryList();
-                         
                          }
                         },
                         child: Center(
@@ -146,7 +145,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                         isLoading.value = true;
                         //  TODO: Message sending ui
                         List<ChatUserModel> roomUsers =
-                            RoomProvider().usersList;
+                            Provider.of<ChatRoomScreenController>(context, listen: false).usersListInRoom;
                         Logger().w("USERS : ${roomUsers.toString()}");
                         await MessageProvider().sendPublicMessage(
                           message: _message.text,

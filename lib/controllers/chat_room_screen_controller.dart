@@ -36,13 +36,12 @@ class ChatRoomScreenController with ChangeNotifier {
     // insert to the index 0 -- LIFO
     _onMemoryMessagesList.add(messageModel);
     notifyListeners();
-    if(scrollController.hasClients){
-
-    scrollController.animateTo(
-      scrollController.position.maxScrollExtent + 65,
-      duration: const Duration(milliseconds: 600),
-      curve: Curves.bounceOut,
-    );
+    if (scrollController.hasClients) {
+      scrollController.animateTo(
+        scrollController.position.maxScrollExtent + 65,
+        duration: const Duration(milliseconds: 600),
+        curve: Curves.bounceOut,
+      );
     }
   }
 
@@ -53,13 +52,12 @@ class ChatRoomScreenController with ChangeNotifier {
       _onMemoryMessagesList.add(item);
     }
     notifyListeners();
-    if(scrollController.hasClients){
-
-    scrollController.animateTo(
-      scrollController.position.maxScrollExtent + 65,
-      duration: const Duration(milliseconds: 600),
-      curve: Curves.bounceOut,
-    );
+    if (scrollController.hasClients) {
+      scrollController.animateTo(
+        scrollController.position.maxScrollExtent + 65,
+        duration: const Duration(milliseconds: 600),
+        curve: Curves.bounceOut,
+      );
     }
   }
 
@@ -99,10 +97,14 @@ class ChatRoomScreenController with ChangeNotifier {
 // get messages from local
   Future<List<MessageModel>> getMessages(String roomId) async {
     Logger().e("ROOM ID ::: $roomId");
-    var box = await Hive.openBox<MessageModel>(roomId);
-    // To retrieve your SendMessageModel objects
-    List<MessageModel> savedMessages = box.values.toList();
-    return savedMessages;
+    try {
+      var box = await Hive.openBox<MessageModel>(roomId);
+      // To retrieve your SendMessageModel objects
+      List<MessageModel> savedMessages = box.values.toList();
+      return savedMessages;
+    } catch (e) {
+      return [];
+    }
   }
 
 //==================== Message Handling receive/send
@@ -224,7 +226,10 @@ class ChatRoomScreenController with ChangeNotifier {
     List<MessageModel> messages = await getMessages(roomId);
     // TODO: remove all prevoius messages, unttil last 10
     // ***************
-   messages = messages.getRange(messages.length-10, messages.length).toList();
+    if (messages.length > 10) {
+      messages =
+          messages.getRange(messages.length - 10, messages.length).toList();
+    }
     addMessageListToOnMemory(messages);
     _l.w(
         "Refresh room -->> triggered onmemory message count :: ${getOnMemoryMessages.length}");
