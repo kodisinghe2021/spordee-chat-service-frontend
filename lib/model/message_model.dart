@@ -3,14 +3,14 @@ import 'dart:convert';
 import 'package:spordee_messaging_app/model/chat_user_model.dart';
 
 // ignore_for_file: public_member_api_docs, sort_constructors_first
-class SendMessageModel {
+class MessageModel {
   double messageId;
   String message;
   String sendersId;
   List<ChatUserModel> receiversIdSet;
   String category;
   String time;
-  SendMessageModel({
+  MessageModel({
     required this.messageId,
     required this.message,
     required this.sendersId,
@@ -30,8 +30,8 @@ class SendMessageModel {
     };
   }
 
-  factory SendMessageModel.fromMap(Map<String, dynamic> map) {
-    return SendMessageModel(
+  factory MessageModel.fromMap(Map<String, dynamic> map) {
+    return MessageModel(
       messageId: map['messageId'] != null?  double.parse(map['messageId'].toString()):-1,
       message: map['message'].toString(),
       sendersId: map['senderId'].toString(),
@@ -43,5 +43,5 @@ class SendMessageModel {
 
   String toJson() => json.encode(toMap());
 
-  factory SendMessageModel.fromJson(String source) => SendMessageModel.fromMap(json.decode(source) as Map<String, dynamic>);
+  factory MessageModel.fromJson(String source) => MessageModel.fromMap(json.decode(source) as Map<String, dynamic>);
 }

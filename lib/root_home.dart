@@ -3,6 +3,7 @@ import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 import 'package:spordee_messaging_app/controllers/authentication/authentication_provider.dart';
 import 'package:spordee_messaging_app/controllers/chat/room_provider.dart';
+import 'package:spordee_messaging_app/controllers/chat_room_screen_controller.dart';
 import 'package:spordee_messaging_app/controllers/messages/message_provider.dart';
 import 'package:spordee_messaging_app/controllers/messages/room_page_meesage_list.dart';
 import 'package:spordee_messaging_app/controllers/route_controller.dart';
@@ -31,6 +32,9 @@ class RootHome extends StatelessWidget {
           ),
           ChangeNotifierProvider<RoomPageMessageList>(
             create: (context) => RoomPageMessageList(),
+          ),
+          ChangeNotifierProvider<ChatRoomScreenController>(
+            create: (context) => ChatRoomScreenController(),
           ),
           ChangeNotifierProvider<RouteProvider>(
             create: (context) => RouteProvider(),

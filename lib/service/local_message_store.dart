@@ -1,7 +1,7 @@
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:logger/logger.dart';
-import 'package:spordee_messaging_app/model/send_message_model.dart';
+import 'package:spordee_messaging_app/model/message_model.dart';
 
 class LocalMessageStore {
   var roomBox = Hive.box('chatRooms');
@@ -9,7 +9,7 @@ class LocalMessageStore {
 
   Future<void> putMessageToChatRoom(
     String roomId,
-    SendMessageModel messageModel,
+    MessageModel messageModel,
   ) async {
 
     if (roomBox.containsKey(roomId)) {

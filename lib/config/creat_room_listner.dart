@@ -2,10 +2,12 @@ import 'dart:collection';
 import 'dart:convert';
 
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:logger/logger.dart';
 import 'package:spordee_messaging_app/controllers/chat/room_provider.dart';
+import 'package:spordee_messaging_app/controllers/chat_room_screen_controller.dart';
 import 'package:spordee_messaging_app/controllers/messages/room_page_meesage_list.dart';
-import 'package:spordee_messaging_app/model/send_message_model.dart';
+import 'package:spordee_messaging_app/model/message_model.dart';
 import 'package:spordee_messaging_app/service/local_store.dart';
 import 'package:spordee_messaging_app/util/constant.dart';
 import 'package:spordee_messaging_app/util/dotenv.dart';
@@ -56,7 +58,6 @@ void subscribeChatRoom(StompFrame frame) async {
   final chatRoomId = await LocalStore().getFromLocal(Keys.roomId);
   final userId = await LocalStore().getFromLocal(Keys.userId);
   final String? deviceId = await LocalStore().getFromLocal(Keys.deviceId);
-  AndroidDeviceInfo androidDeviceInfo = await DeviceInfoPlugin().androidInfo;
   if (chatRoomId == null) {
     Logger().d("Chat Room ID IS EMPTY");
     return;
@@ -80,23 +81,16 @@ void subscribeChatRoom(StompFrame frame) async {
         if (frame.body != null) {
           Map<String, dynamic> res =
               jsonDecode(frame.body.toString()) as Map<String, dynamic>;
-          // MessageModel model = MessageModel(
-          //   message: res["text"].toString(),
-          //   time: res["date"].toString().split(".")[0],
-          //   fromUser: res["fromUser"],
-          // );
+
+//=======================================================  NEW MESSAGE RECEIVED
           Logger().i("Message from Socket: $res");
-          SendMessageModel sendMessageModel = SendMessageModel.fromMap(res);
-          RoomPageMessageList().putMessage(sendMessageModel);
-          if(sendMessageModel.category == MessageCategory.JOIN.name){
-          RoomProvider().addUsersList(sendMessageModel.receiversIdSet);
-          }
-          // MessagesController().addMessage(model);
-          // MessageReceivingBloc().add(
-          //   MessageReceivedEvent(
-          //     model: model,
-          //   ),
-          // );
+          ChatRoomScreenController().newMessageReceived(res, chatRoomId);
+          // MessageModel sendMessageModel = MessageModel.fromMap(res);
+          // RoomPageMessageList().putMessage(sendMessageModel, chatRoomId);
+          // if (sendMessageModel.category == MessageCategory.JOIN.name) {
+          //   RoomProvider().addUsersList(sendMessageModel.receiversIdSet);
+          // }
+//=======================================================  NEW MESSAGE RECEIVED
         } else {
           Logger().i("body is null");
         }
