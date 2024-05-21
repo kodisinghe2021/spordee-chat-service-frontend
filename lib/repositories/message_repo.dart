@@ -97,10 +97,7 @@ class MessageRepo {
       _log.d("GONING TO DELETE OFFLINE MESSAGES");
       Response response = await _dioInit.dioInit.patch(
         removeOfflineMessagePath(roomId),
-        queryParameters: {
-          "userId": userId,
-          "deviceId": deviceId,
-        },
+        data: ChatUserId(chatUserId: userId, chatUserDeviceId: deviceId).toMap(),
       );
       _log.d("DELETE OFFLINE MESSAGES STATUS :: ${response.data}");
       _log.i(response.data);
