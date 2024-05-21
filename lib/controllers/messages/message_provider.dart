@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:logger/logger.dart';
 import 'package:spordee_messaging_app/controllers/messages/room_page_meesage_list.dart';
-import 'package:spordee_messaging_app/model/chat_user_model.dart';
+import 'package:spordee_messaging_app/model/v2/chat_user_id_model.dart';
 import 'package:spordee_messaging_app/model/message_model.dart';
 import 'package:spordee_messaging_app/repositories/message_repo.dart';
 import 'package:spordee_messaging_app/service/local_store.dart';
@@ -42,9 +42,9 @@ class MessageProvider with ChangeNotifier {
   //   notifyListeners();
   // }
 
-  Future<void> sendPublicMessage({
+  Future<void> sendMessage({
     required String message,
-    required List<ChatUserModel> roomUsers,
+    required List<ChatUserId> roomUsers,
   }) async {
     String? userId = await _localStore.getFromLocal(Keys.userId);
     String? roomId = await _localStore.getFromLocal(Keys.roomId);

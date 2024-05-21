@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 import 'package:spordee_messaging_app/model/chat_room_model.dart';
-import 'package:spordee_messaging_app/controllers/chat/room_provider.dart';
+import 'package:spordee_messaging_app/controllers/room_provider.dart';
+import 'package:spordee_messaging_app/model/v2/res/res_chat_room.dart';
 import 'package:spordee_messaging_app/util/constant.dart';
 import 'package:spordee_messaging_app/util/exceptions.dart';
 
@@ -12,7 +13,7 @@ class BottomSheetForm extends StatelessWidget {
     required this.room,
   }) : super(key: key);
   final TextEditingController _mobile = TextEditingController();
-  final ChatRoomModel room;
+  final ResChatRoom room;
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -34,12 +35,12 @@ class BottomSheetForm extends StatelessWidget {
                   width: w(context) * .4,
                   child: ElevatedButton(
                     onPressed: () async {
-                      Logger().d("Room ID : ${room.publicChatRoomId}");
+                      Logger().d("Room ID : ${room.chatRoomId}");
                       Logger().d("device ID : ${value.getUserReult.first.deviceId}");
                       bool isSuccess = await Provider.of<RoomProvider>(context,
                               listen: false)
                           .addUser(
-                        room: room.publicChatRoomId,
+                        room: room.chatRoomId,
                         memberId: value.getUserReult.first.userId,
                         memberDeviceId: value.getUserReult.first.deviceId,
                       );

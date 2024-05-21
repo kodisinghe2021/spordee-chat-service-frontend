@@ -1,17 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
-import 'package:spordee_messaging_app/config/creat_room_listner.dart';
 import 'package:spordee_messaging_app/controllers/authentication/authentication_provider.dart';
-import 'package:spordee_messaging_app/controllers/chat/room_provider.dart';
+import 'package:spordee_messaging_app/controllers/room_provider.dart';
 import 'package:spordee_messaging_app/controllers/chat_room_screen_controller.dart';
-import 'package:spordee_messaging_app/controllers/messages/message_provider.dart';
-import 'package:spordee_messaging_app/controllers/messages/room_page_meesage_list.dart';
+import 'package:spordee_messaging_app/controllers/private_chat_room.dart';
 import 'package:spordee_messaging_app/controllers/route_controller.dart';
-import 'package:spordee_messaging_app/model/message_model.dart';
-import 'package:spordee_messaging_app/screens/chat_room.dart';
-import 'package:spordee_messaging_app/service/hive_service.dart';
 import 'package:spordee_messaging_app/service/local_store.dart';
 import 'package:spordee_messaging_app/util/constant.dart';
 import 'package:spordee_messaging_app/util/exceptions.dart';
@@ -28,46 +22,11 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final TextEditingController _roomName = TextEditingController();
+  final TextEditingController _privateUserB = TextEditingController();
   final ValueNotifier<bool> isLoadingA = ValueNotifier(false);
+  final ValueNotifier<bool> privateChatRoomLoading = ValueNotifier(false);
   final ValueNotifier<bool> isLoadingGetRoomList = ValueNotifier(false);
-
-  // //=== before navigate to the chat room the data set must be inizilized
-  // Future<bool> setupChatRoom(String roomId) async {
-  //   try {
-  //     //1. -- save roomId to local
-  //     bool isLocalStoreSuucess =
-  //         await LocalStore().addToLocal(Keys.roomId, roomId);
-
-  //     //2. -- get the users list
-  //     if (roomId.isNotEmpty && isLocalStoreSuucess) {
-  //       await Provider.of<RoomProvider>(
-  //         context,
-  //         listen: false,
-  //       ).getUsersList(roomId: roomId);
-
-  //       //TODO: 3. get the OfflineMessages and save on memory
-  //       //TODO: 4. Load the all offline messages
-
-  //       // need to load all messages in this room from the local
-  //       await Provider.of<RoomPageMessageList>(context, listen: false)
-  //           .addToOnMemoryFromLocal(roomId);
-
-  //       bool isSuccess = await activeChatRoom();
-  //       // get all offline messages
-  //       await Provider.of<MessageProvider>(context, listen: false)
-  //           .getOfflineMessages(roomId: roomId);
-  //       // await Provider.of<MessageProvider>(
-  //       //   context,
-  //       //   listen: false,
-  //       // ).getMessagesWithPage();
-  //       return true;
-  //     } else {
-  //       return false;
-  //     }
-  //   } catch (e) {
-  //     return false;
-  //   }
-  // }
+  final ValueNotifier<bool> isLoadingGetRoom = ValueNotifier(false);
 
   @override
   Widget build(BuildContext context) {
@@ -90,7 +49,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Consumer<RoomProvider>(
                 builder: (context, value, child) {
                   if (value.getChatRooms.isEmpty) {
-                    return SizedBox();
+                    return const SizedBox();
                   }
                   return SizedBox(
                     height: value.getChatRooms.length < 2
@@ -107,10 +66,11 @@ class _HomeScreenState extends State<HomeScreen> {
                               return ListTile(
                                 leading: IconButton(
                                   onPressed: () async {
-                                   await Provider.of<ChatRoomScreenController>(
-                                            context, listen: false)
-                                        .initChatRoom(value.getChatRooms[index]
-                                            .publicChatRoomId);
+                                    await Provider.of<ChatRoomScreenController>(
+                                            context,
+                                            listen: false)
+                                        .initChatRoom(value
+                                            .getChatRooms[index].chatRoomId);
                                     Provider.of<RouteProvider>(
                                       context,
                                       listen: false,
@@ -122,9 +82,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ),
                                 ),
                                 title: Text(
-                                    "name: ${value.getChatRooms[index].publicChatRoomName}"),
+                                    "name: ${value.getChatRooms[index].roomName}"),
                                 trailing: snapshot.data ==
                                         value.getChatRooms[index].createdBy
+                                            .chatUserId
                                     ? TextButton(
                                         onPressed: () {
                                           Scaffold.of(context).showBottomSheet(
@@ -207,6 +168,68 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                 ],
+              ),
+              SizedBox(height: 20),
+              //================= private chat ===========================
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  SizedBox(
+                    height: h(context) * .06,
+                    width: w(context) * .55,
+                    child: TextFormField(
+                      controller: _privateUserB,
+                      decoration: dec("Enter Mobile Number"),
+                    ),
+                  ),
+                  const Spacer(),
+                  SizedBox(
+                    height: h(context) * .06,
+                    width: w(context) * .3,
+                    child: ValueListenableBuilder<bool>(
+                      valueListenable: privateChatRoomLoading,
+                      builder: (context, value, child) => value
+                          ? const CupertinoActivityIndicator()
+                          : ElevatedButton(
+                              onPressed: () async {
+                                privateChatRoomLoading.value = true;
+                                bool isSuccess = await Provider.of<
+                                    PrivateChatRoomController>(
+                                  context,
+                                  listen: false,
+                                ).createNewPrivateChat(
+                                    userName: _privateUserB.text);
+                                privateChatRoomLoading.value = false;
+                              },
+                              child: const Text("Chat"),
+                            ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                height: h(context) * .06,
+                width: w(context) * .4,
+                child: ValueListenableBuilder<bool>(
+                  valueListenable: isLoadingGetRoom,
+                  builder: (context, value, child) => value
+                      ? const CupertinoActivityIndicator()
+                      : ElevatedButton(
+                          onPressed: () async {
+                            isLoadingGetRoom.value = true;
+                            bool isCaught = await Provider.of<RoomProvider>(
+                              context,
+                              listen: false,
+                            ).getAllRooms();
+                            if (!isCaught) {
+                              showWarningToast("No Friends");
+                            }
+                            isLoadingGetRoom.value = false;
+                          },
+                          child: const Text("Get Friend List"),
+                        ),
+                ),
               ),
               // const SizedBox(height: 20),
               // ElevatedButton(

@@ -1,10 +1,12 @@
 import 'package:dio/dio.dart';
 import 'package:logger/logger.dart';
-import 'package:spordee_messaging_app/model/add_user_req_model.dart';
+import 'package:spordee_messaging_app/model/v2/req/req_add_user.dart';
 import 'package:spordee_messaging_app/model/auth_user_model.dart';
 import 'package:spordee_messaging_app/model/chat_room_model.dart';
-import 'package:spordee_messaging_app/model/chat_user_model.dart';
+import 'package:spordee_messaging_app/model/v2/chat_user_id_model.dart';
 import 'package:spordee_messaging_app/model/response_model.dart';
+import 'package:spordee_messaging_app/model/v2/req/req_create_chat_room.dart';
+import 'package:spordee_messaging_app/model/v2/res/res_chat_room.dart';
 import 'package:spordee_messaging_app/util/dio_initilizer.dart';
 import 'package:spordee_messaging_app/util/dotenv.dart';
 import 'package:spordee_messaging_app/util/exceptions.dart';
@@ -13,41 +15,54 @@ class ChatRoomRepo {
   final DioInit _dioInit = DioInit();
   final Logger log = Logger();
   // create chat room
-  Future<ChatRoomModel?> createChatRoom({
+  Future<ResChatRoom?> createChatRoom({
     required String id,
     required String name,
     required String description,
     required String createdBy,
     required String deviceId,
+    required bool isPublic,
   }) async {
     try {
-      ChatRoomModel model = ChatRoomModel(
-        publicChatRoomId: id,
-        publicChatRoomName: name,
+      // ChatRoomModel model = ChatRoomModel(
+      //   publicChatRoomId: id,
+      //   publicChatRoomName: name,
+      //   description: description,
+      //   createdBy: createdBy,
+      //   deviceId: deviceId,
+      //   updatedAt: "",
+      // );
+
+      // TODO: new model add here
+      ReqCreateChatRoom model = ReqCreateChatRoom(
+        roomName: name,
         description: description,
-        createdBy: createdBy,
-        deviceId: deviceId,
-        updatedAt: "",
+        createdBy:
+            ChatUserId(chatUserId: createdBy, chatUserDeviceId: deviceId),
+            chatUsers: [],
+            adminList: [],
+        isPublic: isPublic,
       );
 
       Response response = await _dioInit.dioInit.post(
         CREATE_CHAT_ROOM,
         data: model.toMap(),
       );
+
       Logger().d("response ${response.data}");
       if (response.data != null) {
         Logger().d("response ${response.data}");
         ResponseModel responseModel = ResponseModel.fromMap(response.data);
 
-        if (responseModel.code != 201) {
+        if (responseModel.code != 200) {
           return null;
         }
 
-        ChatRoomModel newModel =
-            ChatRoomModel.fromMap(responseModel.data as Map<String, dynamic>);
+        ResChatRoom newModel =
+            ResChatRoom.fromMap(responseModel.data as Map<String, dynamic>);
 
-        Logger().d("new model ${newModel.publicChatRoomId}");
-        Logger().d("new model ${newModel.publicChatRoomName}");
+        Logger().d("new model ${newModel.chatRoomId}");
+        Logger().d("new model ${newModel.createdBy}");
         return newModel;
       } else {
         return null;
@@ -67,40 +82,45 @@ class ChatRoomRepo {
     }
   }
 
-  Future<List<ChatRoomModel>> getAllRooms({
+  Future<List<ResChatRoom>> getAllRoomsByChatUserId({
     required String userId,
     required String deviceId,
   }) async {
-    List<ChatRoomModel> modelList = [];
+    List<ResChatRoom> modelList = [];
     try {
       Response response = await _dioInit.dioInit.get(
         GET_ALL_ROOMS,
-        data: ChatUserModel(
+        data: ChatUserId(
           chatUserId: userId,
           chatUserDeviceId: deviceId,
         ).toMap(),
-
       );
       log.i("Response:  ${response.data}");
       log.i("type:  ${response.data.runtimeType}");
 
       ResponseModel responseModel = ResponseModel.fromMap(response.data);
+      log.i("response model data type:  ${responseModel.data.runtimeType}");
 
       if (responseModel.code != 200) {
         return [];
       }
 
-      // casting
       List<dynamic> dynamicList = responseModel.data as List<dynamic>;
 
-      for (var item in dynamicList.cast<Map<String, dynamic>>()) {
-        // Map<String, dynamic> map = item;
+      List<Map<String, dynamic>> castedList =
+          dynamicList.map((e) => e as Map<String, dynamic>).toList();
+      // List<Map<String,dynamic>> castedList = dynamicList as List<Map<String,dynamic>>;
 
-        log.i("after convert type:  ${item.runtimeType}");
-        ChatRoomModel model = ChatRoomModel.fromMap(item);
-        log.i("model:  ${model.runtimeType}");
+      Logger().i("castedList : ${castedList.runtimeType}");
+
+      for (var item in castedList) {
+        // Map<String, dynamic> map = item;
+        ResChatRoom model = ResChatRoom.fromMap(item);
         modelList.add(model);
-        log.i("List Length:  ${modelList.length}");
+        log.i(
+            "chat device id : :: ${model.adminList.first.chatUserId.chatUserDeviceId}");
+        log.i(
+            "chat user id : :: ${model.adminList.first.chatUserId.chatUserId}");
       }
 
       //  List<Map<String,dynamic>> c =  response.data as List<Map<String,dynamic>>;
@@ -143,7 +163,7 @@ class ChatRoomRepo {
     }
   }
 
-  Future<ChatRoomModel?> addUser({
+  Future<ResChatRoom?> addUser({
     required String newUserId,
     required String newUserDeviceId,
     required String chatRoomId,
@@ -151,16 +171,24 @@ class ChatRoomRepo {
     required String adminDeviceId,
   }) async {
     try {
+      log.d("Going to send request");
+      Map<String, dynamic> map = ReqAddUser(
+        adminUserId: ChatUserId(
+          chatUserId: adminId,
+          chatUserDeviceId: adminDeviceId,
+        ),
+        newUserId: ChatUserId(
+          chatUserId: newUserId,
+          chatUserDeviceId: newUserDeviceId,
+        ),
+        chatRoomId: chatRoomId,
+      ).toMap();
+
       Response reposnse = await _dioInit.dioInit.post(
         ADD_MEMBER_TO_CHAT,
-        data: AddUserRequestModel(
-          newUserId: newUserId,
-          newUserDeviceId: newUserDeviceId,
-          chatRoomId: chatRoomId,
-          adminId: adminId,
-          adminDeviceId: adminDeviceId,
-        ).toMap(),
+        data: map,
       );
+
       log.i(reposnse.data);
 
       ResponseModel responseModel = ResponseModel.fromMap(reposnse.data);
@@ -175,11 +203,11 @@ class ChatRoomRepo {
         return null;
       }
 
-      if (responseModel.code == 201) {
-        ChatRoomModel model =
-            ChatRoomModel.fromMap(responseModel.data as Map<String, dynamic>);
+      if (responseModel.code == 200) {
+        ResChatRoom model =
+            ResChatRoom.fromMap(responseModel.data as Map<String, dynamic>);
 
-        log.i(model.publicChatRoomId);
+        log.i(model.chatRoomId);
         return model;
       }
 
@@ -194,12 +222,12 @@ class ChatRoomRepo {
     }
   }
 
-  Future<List<ChatUserModel>> getUsersList({
+  Future<List<ChatUserId>> getUsersList({
     required String roomId,
   }) async {
     try {
       Response response = await _dioInit.dioInit.get(
-        getAllUserListPath(roomId),
+        getAllUsersByRoomIdPath(roomId),
       );
       if (response.data == null) {
         return [];
@@ -210,8 +238,8 @@ class ChatRoomRepo {
       ResponseModel responseModel = ResponseModel.fromMap(response.data);
       if (responseModel.code == 200) {
         List<dynamic> lst = responseModel.data as List<dynamic>;
-
-        return lst.map((e) => ChatUserModel.fromMap(e)).toList();
+       return lst.map((e) => e as Map<String,dynamic>).toList().map((m) => ChatUserId.fromMap(m)).toList();
+        // return lst.map((e) => ChatUserId.fromMap(e)).toList();
       } else {
         return [];
       }

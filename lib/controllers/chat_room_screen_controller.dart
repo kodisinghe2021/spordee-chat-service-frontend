@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:logger/logger.dart';
 import 'package:spordee_messaging_app/config/creat_room_listner.dart';
-import 'package:spordee_messaging_app/model/chat_user_model.dart';
+import 'package:spordee_messaging_app/model/v2/chat_user_id_model.dart';
 import 'package:spordee_messaging_app/model/message_model.dart';
 import 'package:spordee_messaging_app/repositories/chat_room_repo.dart';
 import 'package:spordee_messaging_app/repositories/message_repo.dart';
@@ -65,14 +65,14 @@ class ChatRoomScreenController with ChangeNotifier {
   List<MessageModel> get getOnMemoryMessages => [..._onMemoryMessagesList];
 
 // chatRoom Users List
-  List<ChatUserModel> _usersListAtRoom = [];
+  List<ChatUserId> _usersListAtRoom = [];
 
-  void addUsersListToRoom(List<ChatUserModel> list) {
+  void addUsersListToRoom(List<ChatUserId> list) {
     _usersListAtRoom = list;
     notifyListeners();
   }
 
-  List<ChatUserModel> get usersListInRoom => _usersListAtRoom;
+  List<ChatUserId> get usersListInRoom => _usersListAtRoom;
 
   // chatRoom Users List
   List<MessageModel> _offlineMessages = [];
@@ -88,10 +88,13 @@ class ChatRoomScreenController with ChangeNotifier {
 //==================== LOCAL STORING
 // put message to local
   Future<void> putToLocal(String roomId, MessageModel messageModel) async {
-    var box = await Hive.openBox<MessageModel>(roomId);
-
+  try {
+      var box = await Hive.openBox<MessageModel>(roomId);
     // insert to first
     await box.add(messageModel);
+  } catch (e) {
+    _l.d("put to local failed :: ${e.toString()}");
+  }
   }
 
 // get messages from local
@@ -119,10 +122,10 @@ class ChatRoomScreenController with ChangeNotifier {
       addMessageToOnMemory(messageModel);
 
       // check this message from User added state
-      if (messageModel.category == MessageCategory.JOIN.name) {
+      if (messageModel.messageCategory == MessageCategory.JOIN.name) {
         _l.e(
-            "User added to the room. new List : ${messageModel.receiversIdSet}");
-        addUsersListToRoom(messageModel.receiversIdSet);
+            "User added to the room. new List : ${messageModel.chatUserIdSet}");
+        addUsersListToRoom(messageModel.chatUserIdSet);
       }
 
       // set to Local
@@ -157,6 +160,7 @@ class ChatRoomScreenController with ChangeNotifier {
 
   //==================== Initilizing Chat room
   Future<void> initChatRoom(String roomId) async {
+   await _localStore.addToLocal(Keys.roomId, roomId);
     roomId = roomId;
     await getUsersList(roomId: roomId);
     await refreshMessages(roomId);
@@ -173,7 +177,7 @@ class ChatRoomScreenController with ChangeNotifier {
     }
 
     _l.i("Chat RoomId : $roomId");
-    List<ChatUserModel> users = await _chatRoomRepo.getUsersList(
+    List<ChatUserId> users = await _chatRoomRepo.getUsersList(
       roomId: roomId,
     );
     addUsersListToRoom(users);

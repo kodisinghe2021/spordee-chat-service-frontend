@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 import 'package:spordee_messaging_app/controllers/authentication/authentication_provider.dart';
-import 'package:spordee_messaging_app/controllers/chat/room_provider.dart';
+import 'package:spordee_messaging_app/controllers/room_provider.dart';
+import 'package:spordee_messaging_app/controllers/private_chat_room.dart';
 import 'package:spordee_messaging_app/controllers/chat_room_screen_controller.dart';
 import 'package:spordee_messaging_app/controllers/messages/message_provider.dart';
 import 'package:spordee_messaging_app/controllers/messages/room_page_meesage_list.dart';
@@ -38,6 +39,9 @@ class RootHome extends StatelessWidget {
           ),
           ChangeNotifierProvider<RouteProvider>(
             create: (context) => RouteProvider(),
+          ),
+          ChangeNotifierProvider<PrivateChatRoomController>(
+            create: (context) => PrivateChatRoomController(),
           ),
         ],
         child: Consumer<AuthenticationProvider>(

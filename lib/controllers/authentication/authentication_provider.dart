@@ -26,8 +26,10 @@ class AuthenticationProvider extends ChangeNotifier {
 
   Future<void> authenticate() async {
     String? userId = await _localStore.getFromLocal(Keys.userId);
-    if (userId != null) {
+    String? mobile = await _localStore.getFromLocal(Keys.mobile);
+    if (userId != null || mobile != null) {
       log.i("User NOT NULL $userId");
+
       // AuthUserModel? model = await _registrationRepo.getUser(userId);
       // log.i("Model found:: ${model!.userId.toString()}");
       await Future.delayed(const Duration(milliseconds: 2000));
@@ -58,6 +60,7 @@ class AuthenticationProvider extends ChangeNotifier {
 
     if (model != null) {
       await _localStore.addToLocal(Keys.userId, model.userId);
+      await _localStore.addToLocal(Keys.mobile, model.mobile);
       await authenticate();
       return true;
     }else{

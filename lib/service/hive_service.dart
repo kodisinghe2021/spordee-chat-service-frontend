@@ -1,7 +1,7 @@
 import 'package:hive/hive.dart';
 import 'package:path_provider/path_provider.dart' as path_provider;
 import 'package:flutter/services.dart' show rootBundle;
-import 'package:spordee_messaging_app/model/chat_user_model.dart';
+import 'package:spordee_messaging_app/model/v2/chat_user_id_model.dart';
 import 'dart:async';
 import 'dart:convert';
 
@@ -17,9 +17,10 @@ class MessageModelAdapter extends TypeAdapter<MessageModel> {
       messageId: reader.readDouble(),
       message: reader.readString(),
       sendersId: reader.readString(),
-      receiversIdSet: reader.readList().cast<ChatUserModel>(),
-      category: reader.readString(),
-      time: reader.readString(),
+      chatUserIdSet:[], // reader.readList().cast<ChatUserId>(),
+      messageCategory: reader.readString(),
+      sentTime: reader.readString(),
+      chatRoomId: reader.readString(),
     );
   }
 
@@ -28,9 +29,10 @@ class MessageModelAdapter extends TypeAdapter<MessageModel> {
     writer.writeDouble(obj.messageId);
     writer.writeString(obj.message);
     writer.writeString(obj.sendersId);
-    writer.writeList(obj.receiversIdSet);
-    writer.writeString(obj.category);
-    writer.writeString(obj.time);
+    // writer.writeList(obj.chatUserIdSet);
+    writer.writeList([]);
+    writer.writeString(obj.messageCategory);
+    writer.writeString(obj.sentTime);
+    writer.writeString(obj.chatRoomId);
   }
 }
-

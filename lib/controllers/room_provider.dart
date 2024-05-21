@@ -2,7 +2,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:logger/logger.dart';
 import 'package:spordee_messaging_app/model/auth_user_model.dart';
 import 'package:spordee_messaging_app/model/chat_room_model.dart';
-import 'package:spordee_messaging_app/model/chat_user_model.dart';
+import 'package:spordee_messaging_app/model/v2/chat_user_id_model.dart';
+import 'package:spordee_messaging_app/model/v2/res/res_chat_room.dart';
 import 'package:spordee_messaging_app/repositories/chat_room_repo.dart';
 import 'package:spordee_messaging_app/service/local_store.dart';
 import 'package:spordee_messaging_app/util/keys.dart';
@@ -18,16 +19,16 @@ class RoomProvider extends ChangeNotifier {
   final DeviceInfoPlugin _deviceInfo = DeviceInfoPlugin();
   final Logger log = Logger();
 
-  List<ChatRoomModel> _chatRooms = [];
+  List<ResChatRoom> _chatRooms = [];
   List<AuthUserModel> _userResult = [];
-  List<ChatUserModel> _usersList = [];
+  List<ChatUserId> _usersList = [];
 
-  void addUsersList(List<ChatUserModel> list) {
+  void addUsersList(List<ChatUserId> list) {
     _usersList = list;
     notifyListeners();
   }
 
-  List<ChatUserModel> get usersList => _usersList;
+  List<ChatUserId> get usersList => _usersList;
 
   void _addUSearchResult(AuthUserModel model) {
     _userResult.clear();
@@ -42,17 +43,17 @@ class RoomProvider extends ChangeNotifier {
 
   List<AuthUserModel> get getUserReult => _userResult;
 
-  void _addChatRoom(ChatRoomModel model) {
+  void _addChatRoom(ResChatRoom model) {
     _chatRooms.add(model);
     notifyListeners();
   }
 
-  void _replaceRooms(List<ChatRoomModel> models) {
+  void _replaceRooms(List<ResChatRoom> models) {
     _chatRooms = models;
     notifyListeners();
   }
 
-  List<ChatRoomModel> get getChatRooms => [..._chatRooms];
+  List<ResChatRoom> get getChatRooms => [..._chatRooms];
 
   Future<bool> createChatRoom({
     required String name,
@@ -70,12 +71,13 @@ class RoomProvider extends ChangeNotifier {
       return false;
     }
     log.d("android id : $deviceID");
-    ChatRoomModel? model = await _chatRoomRepo.createChatRoom(
+    ResChatRoom? model = await _chatRoomRepo.createChatRoom(
       id: "",
       name: name,
       description: "default description",
       createdBy: userId,
       deviceId: deviceID,
+      isPublic: true,
     );
     if (model != null) {
       _addChatRoom(model);
@@ -102,8 +104,8 @@ class RoomProvider extends ChangeNotifier {
     log.d("USER ID :: ${userId.toString()}");
     log.d("DEVICE ID :: ${deviceId.toString()}");
 
-    List<ChatRoomModel> models =
-        await _chatRoomRepo.getAllRooms(userId: userId, deviceId: deviceId);
+    List<ResChatRoom> models =
+        await _chatRoomRepo.getAllRoomsByChatUserId(userId: userId, deviceId: deviceId);
         
     log.i("NEW MODELS RECEIVED :: ${models.length}");
     _replaceRooms(models);
@@ -144,7 +146,7 @@ class RoomProvider extends ChangeNotifier {
       log.w("DeviceID NULL");
       return false;
     }
-    ChatRoomModel? chatRoomModel = await _chatRoomRepo.addUser(
+    ResChatRoom? chatRoomModel = await _chatRoomRepo.addUser(
       adminId: userId,
       adminDeviceId: deviceId,
       chatRoomId: room,
@@ -156,7 +158,7 @@ class RoomProvider extends ChangeNotifier {
       Logger().d(" IN REPO MODEL NULL::");
       return false;
     } else {
-      Logger().d(" IN REPO :: ${chatRoomModel.publicChatRoomId}");
+      Logger().d(" IN REPO :: ${chatRoomModel.chatRoomId}");
       return true;
     }
   }
@@ -169,7 +171,7 @@ class RoomProvider extends ChangeNotifier {
     }
 
     log.i("Chat RoomId : $roomId");
-    List<ChatUserModel> users = await _chatRoomRepo.getUsersList(
+    List<ChatUserId> users = await _chatRoomRepo.getUsersList(
       roomId: roomId,
     );
     addUsersList(users);
